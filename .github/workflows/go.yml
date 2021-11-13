@@ -43,6 +43,6 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'SadWaveEventsApiV2'
-        slot-name: 'production'
+#        slot-name: 'production'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
         images: 'index.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sadwave-events-api-v2:${{ github.sha }}'
