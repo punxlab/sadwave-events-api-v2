@@ -22,7 +22,7 @@ func (i *Implementation) getEvents(params martini.Params) (int, string) {
 		return 404, err.Error()
 	}
 
-	data, err := json.Marshal(events)
+	data, err := json.Marshal(events.Events)
 	if err != nil {
 		return 500, fmt.Sprintf("marshal events: %s", err)
 	}
