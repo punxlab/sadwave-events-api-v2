@@ -1,13 +1,13 @@
 package parser
 
 const (
+	sadwaveURL = "https://sadwave.com"
+
 	MSK CityCode = "msk"
 	SPB CityCode = "spb"
 
 	NameMSK = "Москва"
 	NameSPB = "Санкт-Петербург"
-
-	sadwaveURL = "https://sadwave.com"
 )
 
 var knownCities = []*City{
