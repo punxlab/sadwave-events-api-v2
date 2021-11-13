@@ -30,7 +30,7 @@ func (i *Implementation) Run() {
 	m.Get(fmt.Sprintf("/events/:%s", paramCity), i.getEvents)
 	m.Get("/cities", i.getCities)
 
-	m.Run()
+	m.RunOnAddr(":80")
 }
 
 func (i *Implementation) getCachedEvents() (map[parser.CityCode]*parser.CityEvents, error) {

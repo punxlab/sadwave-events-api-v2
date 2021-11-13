@@ -1,6 +1,6 @@
 FROM alpine
 
-EXPOSE 3000
+EXPOSE 80
 
 COPY bin/sadwave-events-api-v2 /bin
 
