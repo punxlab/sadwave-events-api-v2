@@ -2,9 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 jobs:
   build-app:
     name: Build
@@ -17,17 +17,9 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Build
-      run: CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o ./bin/sadwave-events-tg ./cmd/main.go
+      run: CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o ./bin/sadwave-events-api-v2 ./main.go
     - name: Test
       run: go test -v ./...
-    - name: Generate config
-      env:
-        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-        SADWAVE_API_URL: ${{ secrets.SADWAVE_API_URL }}
-      run: |
-        eval "echo \"$(< config.json.dist)\"" > config.json
-        cat config.json
-        ls
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
