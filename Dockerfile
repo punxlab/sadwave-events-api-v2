@@ -1,8 +1,7 @@
 FROM alpine
 
-EXPOSE 80
+EXPOSE 3000
 
-COPY bin/sadwave-events-tg /bin
-COPY config.json .
+COPY bin/sadwave-events-api-v2 /bin
 
-CMD ["/bin/sadwave-events-tg"]
+CMD ["/bin/sadwave-events-api-v2"]
