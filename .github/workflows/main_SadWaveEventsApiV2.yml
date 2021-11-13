@@ -14,6 +14,11 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
+    - name: Set up Go 1.17
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
     - uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
@@ -25,6 +30,9 @@ jobs:
         registry: https://index.docker.io/v1/
         username: ${{ secrets.AzureAppService_ContainerUsername_d827f12a6a15404b9d5c01c0fe7c4e01 }}
         password: ${{ secrets.AzureAppService_ContainerPassword_59344d0450234420a147739828d39e8a }}
+
+    - name: Build
+      run: CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o ./bin/sadwave-events-api-v2 ./main.go
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v2
