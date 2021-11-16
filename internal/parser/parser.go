@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/opesun/goquery"
@@ -112,7 +113,7 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 	}
 
 	return &Event{
-		Title:           title,
+		Title:           strings.TrimSpace(title),
 		DescriptionHTML: descriptionHTML,
 		ImageURL:        imageURL,
 	}, nextEvent
@@ -151,10 +152,8 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
-	// TODO: remove after testing
-	return "https://sadwave.com/2021/11/gigs-301/"
 	year, month, day := time.Now().Date()
-	return fmt.Sprintf("%s/gigs/%d/%d/%d/", sadwaveURL, year, int(month), day)
+	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
 
 func getNodeText(node *html.Node) string {
