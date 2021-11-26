@@ -36,7 +36,7 @@ func (i *Implementation) Run() {
 	m.Get(fmt.Sprintf("/events/:%s", paramCity), i.getEvents)
 	m.Get("/cities", i.getCities)
 
-	m.RunOnAddr(":80")
+	m.RunOnAddr(":801")
 }
 
 func (i *Implementation) getEventsFromCache() (map[parser.CityCode]*parser.CityEvents, error) {
@@ -66,26 +66,29 @@ func (i *Implementation) setEventsToCache(events map[parser.CityCode]*parser.Cit
 
 func (i *Implementation) watchEvents() {
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-		}()
-
 		for {
-			events, err := parser.Parse()
-			if err != nil {
-				log.Println(err)
-			}
-
-			if len(events) > 0 {
-				err = i.setEventsToCache(events)
-				if err != nil {
-					log.Println(err)
-				}
-			}
-
+			i.updateEvents()
 			time.Sleep(5 * time.Minute)
 		}
 	}()
+}
+
+func (i *Implementation) updateEvents() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
+
+	events, err := parser.Parse()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if len(events) > 0 {
+		err = i.setEventsToCache(events)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }
