@@ -163,6 +163,7 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
+	return "https://sadwave.com/2021/11/16/"
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
