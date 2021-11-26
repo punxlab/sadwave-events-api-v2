@@ -14,8 +14,7 @@ import (
 const (
 	paramCity = "city"
 
-	cacheKeyEvents  = "events-key"
-	cacheKeyLastTry = "last-try-key"
+	cacheKeyEvents = "events-key"
 )
 
 type Implementation struct {
@@ -79,9 +78,11 @@ func (i *Implementation) watchEvents() {
 				log.Println(err)
 			}
 
-			err = i.setEventsToCache(events)
-			if err != nil {
-				log.Println(err)
+			if len(events) > 0 {
+				err = i.setEventsToCache(events)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 
 			time.Sleep(5 * time.Minute)
