@@ -19,7 +19,7 @@ func (i *Implementation) getEvents(params martini.Params) (int, string) {
 	code := parser.CityCode(city)
 	events, ok := allEvents[code]
 	if !ok {
-		return 404, err.Error()
+		return 404, "city not found"
 	}
 
 	data, err := json.Marshal(events.Events)
