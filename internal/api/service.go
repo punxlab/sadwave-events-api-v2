@@ -2,8 +2,11 @@ package api
 
 import (
 	"fmt"
+	"log"
+	"sync"
+	"time"
 
-	"github.com/ReneKroon/ttlcache"
+	"github.com/gadelkareem/cachita"
 	"github.com/go-martini/martini"
 	"github.com/punxlab/sadwave-events-api-v2/internal/parser"
 )
@@ -11,14 +14,16 @@ import (
 const (
 	paramCity = "city"
 
-	cacheKeyEvents = "events-key"
+	cacheKeyEvents  = "events-key"
+	cacheKeyLastTry = "last-try-key"
 )
 
 type Implementation struct {
-	cache *ttlcache.Cache
+	mu    sync.RWMutex
+	cache cachita.Cache
 }
 
-func New(cache *ttlcache.Cache) *Implementation {
+func New(cache cachita.Cache) *Implementation {
 	return &Implementation{
 		cache: cache,
 	}
@@ -27,30 +32,59 @@ func New(cache *ttlcache.Cache) *Implementation {
 func (i *Implementation) Run() {
 	m := martini.Classic()
 
+	i.watchEvents()
+
 	m.Get(fmt.Sprintf("/events/:%s", paramCity), i.getEvents)
 	m.Get("/cities", i.getCities)
 
-	m.RunOnAddr(":80")
+	m.RunOnAddr(":3000")
 }
 
-func (i *Implementation) getCachedEvents() (map[parser.CityCode]*parser.CityEvents, error) {
-	cache, ok := i.cache.Get(cacheKeyEvents)
-	if ok {
-		events, ok := cache.(map[parser.CityCode]*parser.CityEvents)
-		if ok {
-			return events, nil
+func (i *Implementation) getEventsFromCache() (map[parser.CityCode]*parser.CityEvents, error) {
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 
-		}
-
-		i.cache.Purge()
+	events := make(map[parser.CityCode]*parser.CityEvents, 0)
+	err := i.cache.Get(cacheKeyEvents, &events)
+	if err != nil && err != cachita.ErrNotFound {
+		return nil, fmt.Errorf("get cache: %s", err)
 	}
-
-	events, err := parser.Parse()
-	if err != nil {
-		return nil, fmt.Errorf("parse events: %s", err)
-	}
-
-	i.cache.Set(cacheKeyEvents, events)
 
 	return events, nil
+}
+
+func (i *Implementation) setEventsToCache(events map[parser.CityCode]*parser.CityEvents) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	err := i.cache.Put(cacheKeyEvents, events, -1)
+	if err != nil && err != cachita.ErrNotFound {
+		return fmt.Errorf("put cache: %s", err)
+	}
+
+	return nil
+}
+
+func (i *Implementation) watchEvents() {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+
+		for {
+			events, err := parser.Parse()
+			if err != nil {
+				log.Println(err)
+			}
+
+			err = i.setEventsToCache(events)
+			if err != nil {
+				log.Println(err)
+			}
+
+			time.Sleep(5 * time.Minute)
+		}
+	}()
 }

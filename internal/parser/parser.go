@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -14,12 +15,22 @@ import (
 func Parse() (map[CityCode]*CityEvents, error) {
 	url := getArticleUrl()
 
+	if !checkIfPageExists(url) {
+		return make(map[CityCode]*CityEvents), nil
+	}
+
 	nodes, err := goquery.ParseUrl(url)
 	if err != nil {
 		return nil, fmt.Errorf("parse: parse url '%s': %s", url, err)
 	}
 
-	contentNodes := nodes.Find("td.entry-content-right")[0].Child
+	contentNode := nodes.Find("td.entry-content-right")[0]
+	if contentNode == nil {
+		return make(map[CityCode]*CityEvents), nil
+	}
+
+	contentNodes := contentNode.Child
+
 	result := make(map[CityCode]*CityEvents, 0)
 	for _, city := range knownCities {
 		events := getCityEvents(contentNodes, city)
@@ -152,6 +163,7 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
+	return "https://sadwave.com/2021/11/16/"
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
@@ -170,4 +182,23 @@ func collectText(node *html.Node, buf *bytes.Buffer) {
 	for _, n := range node.Child {
 		collectText(n, buf)
 	}
+}
+
+func checkIfPageExists(url string) bool {
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if resp.StatusCode > 199 && resp.StatusCode < 300 {
+		return true
+	}
+
+	if resp.StatusCode == 404 {
+		return false
+	}
+
+	log.Println(fmt.Sprintf("uexpected status '%s'", url))
+	return false
 }

@@ -11,7 +11,7 @@ import (
 func (i *Implementation) getEvents(params martini.Params) (int, string) {
 	city := params[paramCity]
 
-	allEvents, err := i.getCachedEvents()
+	allEvents, err := i.getEventsFromCache()
 	if err != nil {
 		return 500, fmt.Sprintf("get cached events: %s", err)
 	}
