@@ -55,7 +55,10 @@ func getCityEvents(nodes []*html.Node, city *City) []*Event {
 	for {
 		event, nextEventIndex := getEvent(start, end, nodes)
 		start = nextEventIndex
-		result = append(result, event)
+		if event.Title != "" && event.DescriptionHTML != "" {
+			result = append(result, event)
+		}
+
 		if nextEventIndex >= end {
 			break
 		}
@@ -105,6 +108,11 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 			break
 		}
 
+		if node.Data == "p" && descriptionHTML != "" {
+			nextEvent = end
+			break
+		}
+
 		if node.Data == "h2" {
 			title = getNodeText(node)
 		}
@@ -113,9 +121,11 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 			descriptionHTML = processEventMarkup(renderNode(node))
 		}
 
-		if val, _ := getAttribute(node, "class"); val == "wp-block-image" {
-			url, _ := searchAttributeValue(node, "href")
-			imageURL = url
+		if val, _ := getAttribute(node, "class"); strings.Contains(val, "wp-block-image") {
+			img := searchImageNode(node)
+			if img != nil {
+				imageURL, _ = getAttribute(img, "src")
+			}
 		}
 	}
 
@@ -149,16 +159,16 @@ func processEventMarkup(html string) string {
 	return result
 }
 
-func searchAttributeValue(node *html.Node, key string) (string, bool) {
-	if val, ok := getAttribute(node, key); ok {
-		return val, true
+func searchImageNode(node *html.Node) *html.Node {
+	if node.Data == "img" {
+		return node
 	}
 
 	for _, child := range node.Child {
-		return searchAttributeValue(child, key)
+		return searchImageNode(child)
 	}
 
-	return "", false
+	return nil
 }
 
 func getAttribute(node *html.Node, key string) (string, bool) {
@@ -172,7 +182,7 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
-	//return "https://sadwave.com/2021/11/16/"
+	return "https://sadwave.com/2021/11/16/"
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
