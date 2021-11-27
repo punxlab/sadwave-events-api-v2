@@ -65,10 +65,11 @@ func (i *Implementation) setEventsToCache(events map[parser.CityCode]*parser.Cit
 }
 
 func (i *Implementation) watchEvents() {
+	i.updateEvents()
 	go func() {
 		for {
-			i.updateEvents()
 			time.Sleep(5 * time.Minute)
+			i.updateEvents()
 		}
 	}()
 }
