@@ -131,7 +131,7 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 		}
 
 		if node.Data == "p" {
-			descriptionHTML = cleanupAndRenderMarkup(node)
+			descriptionHTML = cleanupAndRender(node)
 		}
 
 		if val, _ := getAttribute(node, "class"); strings.Contains(val, "wp-block-image") {
@@ -163,10 +163,10 @@ func renderNode(node *html.Node) string {
 	return buf.String()
 }
 
-func cleanupAndRenderMarkup(root *html.Node) string {
+func cleanupAndRender(root *html.Node) string {
 	for i, node := range root.Child {
 		if containsNotAllowedTag(node) {
-			content := renderNode(node)
+			content := getNodeText(node)
 			root.Child[i] = &html.Node{
 				Parent: root,
 				Type:   html.TextNode,
@@ -184,14 +184,14 @@ func cleanupAndRenderMarkup(root *html.Node) string {
 
 func containsNotAllowedTag(node *html.Node) bool {
 	if _, ok := allowedTags[node.Data]; node.Type != html.TextNode && !ok {
-		return false
+		return true
 	}
 
 	for _, n := range node.Child {
 		return containsNotAllowedTag(n)
 	}
 
-	return true
+	return false
 }
 
 func searchImageNode(node *html.Node) *html.Node {
