@@ -110,7 +110,7 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 		}
 
 		if node.Data == "p" {
-			descriptionHTML = renderNode(node)
+			descriptionHTML = processEventMarkup(renderNode(node))
 		}
 
 		if val, _ := getAttribute(node, "class"); val == "wp-block-image" {
@@ -137,8 +137,13 @@ func renderNode(node *html.Node) string {
 		return ""
 	}
 
-	result := strings.ReplaceAll(buf.String(), "<p>", "")
+	return buf.String()
+}
+
+func processEventMarkup(html string) string {
+	result := strings.ReplaceAll(html, "<p>", "")
 	result = strings.ReplaceAll(result, "</p>", "")
+	result = strings.ReplaceAll(result, "<br>", "\r\n")
 
 	return result
 }
@@ -166,6 +171,7 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
+	return "https://sadwave.com/2021/11/16/"
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
