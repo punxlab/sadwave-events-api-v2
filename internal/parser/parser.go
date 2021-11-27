@@ -12,6 +12,19 @@ import (
 	"github.com/opesun/goquery/exp/html"
 )
 
+var allowedTags = map[string]struct{}{
+	"b":      {},
+	"strong": {},
+	"i":      {},
+	"em":     {},
+	"u":      {},
+	"ins":    {},
+	"s":      {},
+	"strike": {},
+	"del":    {},
+	"a":      {},
+}
+
 func Parse() (map[CityCode]*CityEvents, error) {
 	url := getArticleUrl()
 
@@ -118,7 +131,7 @@ func getEvent(start int, end int, nodes []*html.Node) (*Event, int) {
 		}
 
 		if node.Data == "p" {
-			descriptionHTML = processEventMarkup(renderNode(node))
+			descriptionHTML = cleanupAndRenderMarkup(node)
 		}
 
 		if val, _ := getAttribute(node, "class"); strings.Contains(val, "wp-block-image") {
@@ -150,15 +163,35 @@ func renderNode(node *html.Node) string {
 	return buf.String()
 }
 
-func processEventMarkup(html string) string {
-	result := strings.ReplaceAll(html, "<p>", "")
+func cleanupAndRenderMarkup(root *html.Node) string {
+	for i, node := range root.Child {
+		if containsNotAllowedTag(node) {
+			content := renderNode(node)
+			root.Child[i] = &html.Node{
+				Parent: root,
+				Type:   html.TextNode,
+				Data:   content,
+			}
+		}
+	}
+
+	result := renderNode(root)
+	result = strings.ReplaceAll(result, "<p>", "")
 	result = strings.ReplaceAll(result, "</p>", "")
-	result = strings.ReplaceAll(result, "<br>", "\r\n")
-	result = strings.ReplaceAll(result, "<br/>", "\r\n")
-	result = strings.ReplaceAll(result, "<meta charset=\"utf-8\"/>", "")
-	result = strings.ReplaceAll(result, "<meta charset=\"utf-8\">", "")
 
 	return result
+}
+
+func containsNotAllowedTag(node *html.Node) bool {
+	if _, ok := allowedTags[node.Data]; node.Type != html.TextNode && !ok {
+		return false
+	}
+
+	for _, n := range node.Child {
+		return containsNotAllowedTag(n)
+	}
+
+	return true
 }
 
 func searchImageNode(node *html.Node) *html.Node {
@@ -184,7 +217,7 @@ func getAttribute(node *html.Node, key string) (string, bool) {
 }
 
 func getArticleUrl() string {
-	//return "https://sadwave.com/2021/11/16/"
+	return "https://sadwave.com/2021/11/16/"
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("%s/%d/%d/%d/", sadwaveURL, year, int(month), day)
 }
