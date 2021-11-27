@@ -233,6 +233,10 @@ func collectText(node *html.Node, buf *bytes.Buffer) {
 		buf.WriteString(node.Data)
 	}
 
+	if node.Data == "br" {
+		buf.WriteString("\r\n")
+	}
+
 	for _, n := range node.Child {
 		collectText(n, buf)
 	}
