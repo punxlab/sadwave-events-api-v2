@@ -13,5 +13,3 @@ config.json
 
 # Bin folder
 bin/*
-
-cache/*

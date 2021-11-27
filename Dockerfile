@@ -2,7 +2,7 @@ FROM alpine
 
 EXPOSE 80
 
-ADD . /cache
+ADD . bin/cache
 
 COPY bin/sadwave-events-api-v2 /bin
 

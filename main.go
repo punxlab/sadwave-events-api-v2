@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cache, err := cachita.NewFileCache("cache", 30*24*time.Hour, 0)
+	cache, err := cachita.NewFileCache("bin/cache", 30*24*time.Hour, 0)
 	if err != nil {
 		log.Panicln(err)
 	}
