@@ -144,6 +144,7 @@ func processEventMarkup(html string) string {
 	result := strings.ReplaceAll(html, "<p>", "")
 	result = strings.ReplaceAll(result, "</p>", "")
 	result = strings.ReplaceAll(result, "<br>", "\r\n")
+	result = strings.ReplaceAll(result, "<br/>", "\r\n")
 
 	return result
 }
